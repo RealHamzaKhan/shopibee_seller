@@ -15,73 +15,75 @@ class SettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final authController=Get.put(AuthController());
     final profileController=Get.put(ProfileController());
-    return Scaffold(
-      backgroundColor: purpleColor,
-      appBar: AppBar(
+    return Obx(()=>
+      Scaffold(
         backgroundColor: purpleColor,
-        title: "Settings".text.make(),
-        automaticallyImplyLeading: false,
-        actions: [
-          const Icon(Icons.edit,size: 26,).onTap(() {Get.to(()=>const EditProfile());}),
-          10.widthBox,
-          Obx(()=>
-          authController.isLoading.value?const CircularProgressIndicator(color: white,).centered()
-          : "Logout".text.size(19).bold.make().paddingSymmetric(vertical: 15,horizontal: 10).onTap(() async{
-              try{
-                authController.isLoading(true);
-                await authController.signoutMethod(context);
-                Get.offAll(()=>const LoginScreen());
-                authController.isLoading(false);
-              }
-              catch (e){
-                authController.isLoading(false);
-                VxToast.show(context, msg: "An unknown error occured");
+        appBar: AppBar(
+          backgroundColor: purpleColor,
+          title: "Settings".text.make(),
+          automaticallyImplyLeading: false,
+          actions: [
+            const Icon(Icons.edit,size: 26,).onTap(() {Get.to(()=> EditProfile(username:profileController.snapshot['name']));}),
+            10.widthBox,
+            
+            authController.isLoading.value?const CircularProgressIndicator(color: white,).centered()
+            : "Logout".text.size(19).bold.make().paddingSymmetric(vertical: 15,horizontal: 10).onTap(() async{
+                try{
+                  authController.isLoading(true);
+                  await authController.signoutMethod(context);
+                  Get.offAll(()=>const LoginScreen());
+                  authController.isLoading(false);
+                }
+                catch (e){
+                  authController.isLoading(false);
+                  VxToast.show(context, msg: "An unknown error occured");
+            
+                }
+                
+              }),
+            
+          ],
+        ),
+        body:FutureBuilder(
+          future: FirestoreServices.getProfile(),
+          builder: (context,AsyncSnapshot<QuerySnapshot> snapshot){
+            if(!snapshot.hasData){
+              return const CircularProgressIndicator(
+                color: white,
+              ).centered();
+            }
+            else{
+              profileController.snapshot=snapshot.data!.docs[0];
+              return Column(
+          children: [
+            ListTile(
+              leading: profileController.snapshot['image_url'].toString().isEmpty?const Icon(Icons.person):Image.network(profileController.snapshot['image_url']).box.roundedFull.clip(Clip.antiAlias).make(),
+              title: boldText(value: profileController.snapshot['name']),
+              subtitle: normalText(value: profileController.snapshot['email']),
+            ),
+            10.heightBox,
+            const Divider(color: white,),
+            10.heightBox,
+            ListTile(
+              onTap: (){
+                Get.to(()=>const ShopSettings());
+              },
+              leading: const Icon(Icons.settings,color: Colors.white,),
+              title: "Shop settings".text.white.make(),
+            ),
+             ListTile(
+              onTap: (){
+                Get.to(()=>const MessageScreen());
+              },
+              leading: const Icon(Icons.message,color: Colors.white,),
+              title: "Messages".text.white.make(),
+            ),
+          ],
+        );
+            }
           
-              }
-              
-            }),
-          ),
-        ],
+        })
       ),
-      body:FutureBuilder(
-        future: FirestoreServices.getProfile(),
-        builder: (context,AsyncSnapshot<QuerySnapshot> snapshot){
-          if(!snapshot.hasData){
-            return const CircularProgressIndicator(
-              color: white,
-            ).centered();
-          }
-          else{
-            profileController.snapshot=snapshot.data!.docs[0];
-            return Column(
-        children: [
-          ListTile(
-            leading: profileController.snapshot['image_url'].toString().isEmpty?const Icon(Icons.person):Image.network(profileController.snapshot['image_url']).box.roundedFull.clip(Clip.antiAlias).make(),
-            title: boldText(value: profileController.snapshot['name']),
-            subtitle: normalText(value: profileController.snapshot['email']),
-          ),
-          10.heightBox,
-          const Divider(color: white,),
-          10.heightBox,
-          ListTile(
-            onTap: (){
-              Get.to(()=>const ShopSettings());
-            },
-            leading: const Icon(Icons.settings,color: Colors.white,),
-            title: "Shop settings".text.white.make(),
-          ),
-           ListTile(
-            onTap: (){
-              Get.to(()=>const MessageScreen());
-            },
-            leading: const Icon(Icons.message,color: Colors.white,),
-            title: "Messages".text.white.make(),
-          ),
-        ],
-      );
-          }
-        
-      })
     );
   }
 }

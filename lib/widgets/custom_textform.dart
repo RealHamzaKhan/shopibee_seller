@@ -1,7 +1,11 @@
 import 'package:emart_seller/consts/const.dart';
 
-Widget customTextForm({required String hintText,required String label,bool isDescription=false}){
+Widget customTextForm({required String hintText,required String label,bool isDescription=false,controller,
+isNumber=false
+}){
   return TextFormField(
+    keyboardType: isNumber?TextInputType.number:TextInputType.streetAddress,
+    controller: controller,
     maxLines: isDescription?4:1,
             style: const TextStyle(
               color: Colors.white,

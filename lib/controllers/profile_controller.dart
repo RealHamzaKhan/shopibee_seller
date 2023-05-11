@@ -12,6 +12,12 @@ class ProfileController extends GetxController{
  final oldPasswordController=TextEditingController();
  final nameController=TextEditingController();
  final newPasswordController=TextEditingController();
+ //shop controllers
+ final shopNameController=TextEditingController();
+ final shopAddressController=TextEditingController();
+ final shopMobileController=TextEditingController();
+ final shopWebsiteController=TextEditingController();
+ final shopDescriptionController=TextEditingController();
  String imageLink='';
  var isUpdated=false.obs;
  changeImage({context})async{
@@ -43,7 +49,7 @@ class ProfileController extends GetxController{
   await firestore.collection(vendors).doc(user!.uid).update({
    'name':newName,
    'password':newPass,
-   'imageUrl':newImage
+   'image_url':newImage
   });
   isUpdated(false);
  }
@@ -53,6 +59,15 @@ class ProfileController extends GetxController{
    user!.updatePassword(newPassword);
   }).catchError((error){
    log('Unable to Update password');
+  });
+ }
+ updateShop()async{
+  await firestore.collection(vendors).doc(user!.uid).update({
+    'shop_name':shopNameController.text,
+    'shop_address':shopAddressController.text,
+    'shop_mobile':shopMobileController.text,
+    'shop_website':shopWebsiteController.text,
+    'shop_description':shopDescriptionController.text,
   });
  }
 }

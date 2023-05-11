@@ -1,4 +1,7 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:emart_seller/consts/const.dart';
+import 'package:emart_seller/controllers/product_controller.dart';
+import 'package:emart_seller/services/firestore_service.dart';
 import 'package:emart_seller/views/product_screen/add_product.dart';
 import 'package:emart_seller/views/product_screen/product_details.dart';
 import 'package:emart_seller/widgets/custom_appbar.dart';
@@ -9,43 +12,85 @@ class ProductScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final popupController=VxPopupMenuController();
+    var controller=Get.put(ProductController());
     return Scaffold(
       floatingActionButton: FloatingActionButton(
-        onPressed: (){
+        onPressed: ()async{
+          await controller.getCategories();
+          controller.populateCategoryList();
           Get.to(()=>const AddProduct());
         },
         backgroundColor: purpleColor,
         child: const Icon(Icons.add),
       ),
       appBar: customAppBar(title: products),
-      body: ListView(
+      body: StreamBuilder(
+        stream: FirestoreServices.getProducts(),
+        builder: (context,AsyncSnapshot<QuerySnapshot>snapshot){
+        if(!snapshot.hasData){
+          return const CircularProgressIndicator(color: purpleColor,).centered();
+        }
+        else if(snapshot.data!.docs.isEmpty){
+          return "No products".text.bold.size(20).color(textfieldGrey).make().centered();
+        }
+        else{
+          return ListView(
         physics: const BouncingScrollPhysics(),
             children: List.generate(
-              10, (index){
+              snapshot.data!.docs.length, (index){
+                var snap=snapshot.data!.docs[index];
               return ListTile(
-                onTap: () => Get.to(()=>const ProductDetails()),
-                leading: Image.network("https://cdn.pixabay.com/photo/2016/03/27/22/05/necktie-1284463_960_720.jpg").box.clip(Clip.antiAlias).rounded.make(),
-                title: "Shoes".text.make(),
+                onTap: () => Get.to(()=> ProductDetails(snap: snap,)),
+                leading: Image.network(snap['p_images'][0],fit: BoxFit.cover,).box.width(context.screenWidth*0.2).clip(Clip.antiAlias).rounded.make(),
+                title: "${snap['p_name']}".text.make(),
                 subtitle: Row(
                   children: [
-                    "\$50".text.red500.make(),
+                    "${snap['p_price']}".text.red500.make(),
                     5.widthBox,
-                    normalText(value: "Featured",color: green)
+                    snap['is_featured']?normalText(value:"Featured",color: green)
+                    :Container(),
                   ],
                 ),
-                trailing: VxPopupMenu(clickType: VxClickType.singleClick,
+                trailing: VxPopupMenu(
+                  controller:popupController ,
+                  clickType: VxClickType.singleClick,
                 menuBuilder: () => Column(
-                  children: [
-                    popupmenuItem(icon: Icons.edit, title: "Edit", ontap: (){}),
-                    popupmenuItem(icon: Icons.delete, title: "Delete", ontap: (){}),
-                    popupmenuItem(icon: Icons.featured_play_list, title: "Featured", ontap: (){}),
-
-                  ],
+                  children:List.generate(popUpMenuIcons.length, (i) =>Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      popUpMenuIcons[i],
+                      10.widthBox,
+                      popUpMenuTitles[i].text.bold.size(18).make(),
+                    ],
+                  ).paddingSymmetric(vertical: 10).onTap(() async{
+                    switch(i){
+                      case 0:
+                      if(snap['is_featured']==true){
+                        popupController.hideMenu();
+                        await controller.removeFeature(snap.id);
+                        
+                      }
+                      else{
+                        popupController.hideMenu();
+                        await controller.addFeature(snap.id);
+                        
+                      }
+                      break;
+                      case 1:
+                      popupController.hideMenu();
+                      await controller.deleteProduct(context, snap.id);
+                      break;
+                    }
+                    popupController.hideMenu();
+                  }) ),
                 ).box.white.roundedSM.p12.width(context.screenWidth*0.4).make(),child: const Icon(Icons.more_vert),
                 ),
               );
             }),
-          )
+          );
+        }
+      })
     );
   }
 }

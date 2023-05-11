@@ -3,8 +3,6 @@ import 'package:emart_seller/views/auth_screen/login_screen.dart';
 import 'package:emart_seller/views/home_screen/home.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 void main()async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
@@ -27,16 +25,20 @@ class _MyAppState extends State<MyApp> {
   }
   bool isLoggedin=false;
   void checkUser()async{
-    auth.authStateChanges().listen((User? user) {
+     auth.authStateChanges().listen((User? user) {
       if(user==null && mounted){
-        isLoggedin=false;
+        
+        Future.delayed(const Duration(seconds: 3),(){
+          Get.offAll(const LoginScreen());
+        });
       }
       else{
-        isLoggedin=true;
+        
+        Future.delayed(const Duration(seconds: 3),(){
+          Get.offAll(const Home());
+        });
       }
-      setState(() {
-       
-     });
+      
      });
      
   }
@@ -52,7 +54,9 @@ class _MyAppState extends State<MyApp> {
           elevation: 0.0,
         )
       ),
-      home: isLoggedin?const Home():const LoginScreen(),
+      home: Scaffold(
+        body:Image.asset('assets/splash_screen.png',fit: BoxFit.fill,).box.size( double.infinity,double.infinity).make() ,
+      ),
     );
   }
 }
