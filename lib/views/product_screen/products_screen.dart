@@ -33,8 +33,7 @@ class ProductScreen extends StatelessWidget {
                     normalText(value: "Featured",color: green)
                   ],
                 ),
-                trailing: VxPopupMenu(child: Icon(Icons.more_vert),
-                clickType: VxClickType.singleClick,
+                trailing: VxPopupMenu(clickType: VxClickType.singleClick,
                 menuBuilder: () => Column(
                   children: [
                     popupmenuItem(icon: Icons.edit, title: "Edit", ontap: (){}),
@@ -42,7 +41,7 @@ class ProductScreen extends StatelessWidget {
                     popupmenuItem(icon: Icons.featured_play_list, title: "Featured", ontap: (){}),
 
                   ],
-                ).box.white.roundedSM.p12.width(context.screenWidth*0.4).make(),
+                ).box.white.roundedSM.p12.width(context.screenWidth*0.4).make(),child: const Icon(Icons.more_vert),
                 ),
               );
             }),
